@@ -282,16 +282,21 @@ app.add_middleware(
 )
 
 
-@app.post("/optimize/schedule")
-def run_schedule_optimization():
+@app.get("/optimize/schedule")  
+def optimize_schedule_endpoint(
+    weekday: int = 0,
+    week_parity: str = "odd",
+):
+    if weekday < 0 or weekday > 6 or week_parity not in ("odd", "even"):
+        raise HTTPException(status_code=422, detail="Invalid day or week parity")
     try:
-        return optimize_schedule()
-
-    except ValueError as error:
-        raise HTTPException(
-            status_code=422,
-            detail=str(error)
+        return optimize_schedule(
+            weekday=weekday,
+            week_parity=week_parity,
+            demo_mode=True
         )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error))
 
 
 @app.get("/simulation/baseline")
@@ -320,35 +325,33 @@ def run_smart_simulation(
     )
 
 
+
 @app.get("/simulation/compare")
 def compare_energy_scenarios(
     outside_temperature: float = -3.0,
     weekday: int = 0,
-    week_parity: str = "odd"
+    week_parity: str = "odd",
+    optimization_mode: str = "demo",
 ):
-    if weekday < 0 or weekday > 6:
+    if weekday < 0 or weekday > 6 or week_parity not in ("odd", "even"):
         raise HTTPException(
             status_code=422,
-            detail="Weekday must be between 0 and 6"
-        )
-
-    if week_parity not in ("odd", "even"):
-        raise HTTPException(
-            status_code=422,
-            detail="Week parity must be 'odd' or 'even'"
+            detail="Invalid day or week parity"
         )
 
     try:
         return compare_energy(
             outside_temperature=outside_temperature,
             weekday=weekday,
-            week_parity=week_parity
+            week_parity=week_parity,
+            optimization_mode=optimization_mode,
         )
     except ValueError as error:
         raise HTTPException(
             status_code=422,
             detail=str(error)
         )
+
 
 
 @app.get("/ulbs/rooms")

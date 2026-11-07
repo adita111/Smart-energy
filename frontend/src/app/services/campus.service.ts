@@ -1,6 +1,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs/internal/Observable';
 
 export interface Building {
   id: string;
@@ -66,6 +67,7 @@ export interface OptimizationResult {
   optimized_zone_count: number;
   moved_activities: number;
   activities: OptimizedActivity[];
+  message?: string;
 }
 
 
@@ -101,6 +103,11 @@ export interface EnergyComparison {
     original_zone_count: number;
     optimized_zone_count: number;
   };
+  ai_insights?: Array<{
+    type: string;
+    title: string;
+    description: string;
+  }>;
 }
 
 
@@ -172,10 +179,18 @@ export class CampusService {
       `${this.apiUrl}/rooms/${roomId}/schedule`
     );
   }
-  optimizeSchedule() {
-  return this.http.post<OptimizationResult>(
+  optimizeSchedule(
+  weekday: number,
+  weekParity: 'odd' | 'even'
+): Observable<OptimizationResult> {
+  return this.http.get<OptimizationResult>(
     `${this.apiUrl}/optimize/schedule`,
-    {}
+    {
+      params: {
+        weekday: String(weekday),
+        week_parity: weekParity
+      }
+    }
   );
 }
 compareEnergy(

@@ -232,6 +232,9 @@ header {
 
 .energy-panel {
   margin-top: 24px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   > p {
     color: #64748b;
@@ -353,4 +356,61 @@ header {
   td:first-child {
     text-align: left;
   }
+}
+
+.optimization-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.active-blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.energy-history-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 540px), 1fr)
+  );
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.energy-history-grid .energy-history-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.energy-history-grid .optimization-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.energy-history-grid .optimization-table th,
+.energy-history-grid .optimization-table td {
+  padding: 8px 4px;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.energy-history-grid .optimization-table th:nth-child(n) {
+  width: auto;
+}
+
+.energy-history-grid .optimization-table td.active-blue {
+  color: #2196f3;
+  font-weight: 700;
 }

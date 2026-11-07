@@ -40,6 +40,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ulbsError = '';
 
   showOptimizationResults = false;
+  optimizationWeekday = 0;
+  optimizationWeekParity: 'odd' | 'even' = 'odd';
 
   buildings: Building[] = [];
   floors: Floor[] = [];
@@ -209,7 +211,10 @@ runOptimization(): void {
   this.optimizationError = '';
   this.optimizationResult = null;
 
-  this.campusService.optimizeSchedule().subscribe({
+  this.campusService.optimizeSchedule(
+    this.optimizationWeekday,
+    this.optimizationWeekParity
+).subscribe({
     next: (result) => {
       this.optimizationResult = result;
       this.optimizing = false;
@@ -292,13 +297,17 @@ getRoomHistory() {
 
   return this.energyResult.smart_control.history.filter(
     item =>
-      item.room_id === this.selectedEnergyRoom &&
-      item.time >= '04:00' &&
-      item.time <= '12:00'
+      item.room_id === this.selectedEnergyRoom
   );
 }
 
+getLeftRoomHistory() {
+  return this.getRoomHistory().slice(0, 24);
+}
 
+getRightRoomHistory() {
+  return this.getRoomHistory().slice(24, 48);
+}
 
 refreshTemperature(): void {
   const room = this.selectedRoom;

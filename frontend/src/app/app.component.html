@@ -162,19 +162,65 @@
       </p>
     </div>
 
-    <button
-      class="refresh-button"
-      (click)="toggleOptimization()"
-      [disabled]="optimizing"
+    <div class="filters">
+  <div>
+    <label>Optimization Day</label>
+
+    <select
+      [value]="optimizationWeekday"
+      (change)="optimizationWeekday = +$any($event.target).value"
     >
-      {{
-        optimizing
+      <option [value]="0">Monday</option>
+      <option [value]="1">Tuesday</option>
+      <option [value]="2">Wednesday</option>
+      <option [value]="3">Thursday</option>
+      <option [value]="4">Friday</option>
+      <option [value]="5">Saturday</option>
+      <option [value]="6">Sunday</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Optimization Week</label>
+
+        <select
+          [value]="optimizationWeekParity"
+          (change)="optimizationWeekParity = $any($event.target).value"
+        >
+          <option value="odd">Odd week</option>
+          <option value="even">Even week</option>
+        </select>
+      </div>
+    </div>
+
+    
+<div class="optimization-actions">
+
+  <button
+    class="refresh-button"
+    (click)="toggleOptimization()"
+    [disabled]="optimizing"
+  >
+    {{
+      optimizing
         ? 'Optimizing...'
         : showOptimizationResults
-        ? 'Hide Optimization'
-        : 'Optimize Schedule'
-  }}
-    </button>
+          ? 'Hide Optimization'
+          : 'Show Optimization'
+    }}
+  </button>
+
+  <button
+    *ngIf="optimizationResult"
+    class="refresh-button"
+    (click)="runOptimization()"
+    [disabled]="optimizing"
+  >
+    Re-optimize Schedule
+  </button>
+
+</div>
+
   </div>
 
   <p class="error" *ngIf="optimizationError">
@@ -182,6 +228,9 @@
   </p>
 
   <div *ngIf="showOptimizationResults && optimizationResult as result">
+
+    <p><strong>Solver status:</strong> {{ result.status }}</p>
+    <p *ngIf="result.message">{{ result.message }}</p>
 
     <div class="stats">
 
@@ -330,6 +379,15 @@
 
   <div *ngIf="energyResult as result">
 
+    <div class="energy-insights" *ngIf="result.ai_insights?.length">
+      <h3>AI Energy Insights</h3>
+
+      <div *ngFor="let insight of result.ai_insights">
+        <strong>{{ insight.title }}</strong>
+        <p>{{ insight.description }}</p>
+      </div>
+    </div>
+
     <div class="energy-summary">
 
       <div class="stat-card">
@@ -445,43 +503,75 @@
 
   <div class="history-controls">
 
-    <div class="energy-history-table">
-      <table class="optimization-table">
+    
+<div class="energy-history-grid">
 
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Temperature</th>
-            <th>Heating</th>
-            <th>Lights</th>
-            <th>Occupied</th>
-          </tr>
-        </thead>
+  <div class="energy-history-table">
+    <table class="optimization-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Temperature</th>
+          <th>Heat</th>
+          <th>Lights</th>
+          <th>Used</th>
+        </tr>
+      </thead>
 
-        <tbody>
-          <tr *ngFor="let item of getRoomHistory()">
-            <td>{{ item.time }}</td>
+      <tbody>
+        <tr *ngFor="let item of getLeftRoomHistory()">
+          <td>{{ item.time }}</td>
+          <td>{{ item.temperature | number:'1.1-2' }}°C</td>
+          <td [class.active-blue]="item.heating_on">
+  {{ item.heating_on ? 'ON' : 'OFF' }}
+</td>
 
-            <td>
-              {{ item.temperature | number:'1.1-2' }}°C
-            </td>
+<td [class.active-blue]="item.lights_on">
+  {{ item.lights_on ? 'ON' : 'OFF' }}
+</td>
 
-            <td>
-              {{ item.heating_on ? 'ON' : 'OFF' }}
-            </td>
+<td [class.active-blue]="item.occupied">
+  {{ item.occupied ? 'Yes' : 'No' }}
+</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-            <td>
-              {{ item.lights_on ? 'ON' : 'OFF' }}
-            </td>
+  <div class="energy-history-table">
+    <table class="optimization-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Temperature</th>
+          <th>Heat</th>
+          <th>Lights</th>
+          <th>Used</th>
+        </tr>
+      </thead>
 
-            <td>
-              {{ item.occupied ? 'Yes' : 'No' }}
-            </td>
-          </tr>
-        </tbody>
+      <tbody>
+        <tr *ngFor="let item of getRightRoomHistory()">
+          <td>{{ item.time }}</td>
+          <td>{{ item.temperature | number:'1.1-2' }}°C</td>
+          <td [class.active-blue]="item.heating_on">
+  {{ item.heating_on ? 'ON' : 'OFF' }}
+</td>
 
-      </table>
-    </div>
+<td [class.active-blue]="item.lights_on">
+  {{ item.lights_on ? 'ON' : 'OFF' }}
+</td>
+
+<td [class.active-blue]="item.occupied">
+  {{ item.occupied ? 'Yes' : 'No' }}
+</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
 
   </div>
 </div>

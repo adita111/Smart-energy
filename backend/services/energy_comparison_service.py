@@ -5,9 +5,10 @@ from services.room_service import get_all_rooms, get_all_states
 from services.schedule_service import get_all_activities
 from services.campus_service import get_heating_zones
 from services.schedule_optimizer import optimize_schedule
+from services.energy_insights import generate_energy_insights
 from services.thermal_service import calculate_next_temperature
 
-STEP_MINUTES = 15
+STEP_MINUTES = 30
 COMFORT_TEMP = 21.0
 ECO_TEMP = 16.0
 LIGHTING_W_PER_M2 = 10.0
@@ -333,14 +334,21 @@ def simulate_scenario(
     }
 
 
-def compare_energy(outside_temperature=-3.0, weekday=0, week_parity="odd"):
+def compare_energy(outside_temperature=-3.0, weekday=0, week_parity="odd", optimization_mode="demo"):
     if week_parity not in {"odd", "even"}:
         raise ValueError("week_parity must be 'odd' or 'even'")
 
     original_activities = get_all_activities(
         weekday=weekday, week_parity=week_parity
     )
-    optimized = optimize_schedule(original_activities)
+    if optimization_mode not in {"demo", "safe"}:
+        raise ValueError("optimization_mode must be 'demo' or 'safe'")
+    optimized = optimize_schedule(
+        activities=original_activities,
+        weekday=weekday,
+        week_parity=week_parity,
+        demo_mode=(optimization_mode == "demo"),
+    )
     optimized_activities = optimized["activities"]
 
     # Scenario A: original schedule + fixed heating.
@@ -386,6 +394,8 @@ def compare_energy(outside_temperature=-3.0, weekday=0, week_parity="odd"):
         "weekday": weekday,
         "week_parity": week_parity,
         "schedule_source": "ulbs",
+        "optimization_mode": optimization_mode,
+        "ai_insights": generate_energy_insights(baseline, smart, optimized_smart, optimized),
         "baseline": baseline,
         "smart_control": smart,
         "optimized_smart": optimized_smart,
@@ -394,6 +404,7 @@ def compare_energy(outside_temperature=-3.0, weekday=0, week_parity="odd"):
         ),
         "schedule_optimization": {
             "status": optimized["status"],
+            "estimated_constraints": optimized.get("estimated_constraints", True),
             "message": optimized.get("message", ""),
             "moved_activities": optimized["moved_activities"],
             "original_zone_count": optimized["original_zone_count"],
